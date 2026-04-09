@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "Link": {
+      "title": "Link",
+      "description": "A productivity link entry",
+      "type": "object",
+      "properties": {
+        "workName": {
+          "type": "string",
+          "description": "Name of the work or task"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL link"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time when the link was added"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Time when the link was last modified"
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the owner"
+        }
+      },
+      "required": ["workName", "url", "timestamp", "userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/links/{linkId}": {
+      "schema": "Link",
+      "description": "User's collection of productivity links"
+    }
+  }
+}

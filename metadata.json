@@ -1,0 +1,5 @@
+{
+  "name": "LinkSync Productivity",
+  "description": "A real-time productivity app for managing and syncing links across devices with automatic timestamping and cloud storage.",
+  "requestFramePermissions": []
+}

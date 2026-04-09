@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{userId}/links
+    // Document ID: {linkId}
+    // Fields:
+    //   - workName: string (required) - Name of the work
+    //   - url: string (required) - The URL
+    //   - timestamp: timestamp (required) - Creation time
+    //   - updatedAt: timestamp (optional) - Last update time
+    //   - userId: string (required) - Owner UID
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "gvtejeswar99reddy@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidLink(data) {
+      return data.keys().hasAll(['workName', 'url', 'timestamp', 'userId']) &&
+             data.workName is string && data.workName.size() > 0 && data.workName.size() < 200 &&
+             data.url is string && data.url.size() > 0 && data.url.size() < 2000 &&
+             data.timestamp is timestamp &&
+             data.userId == request.auth.uid;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+      
+      match /links/{linkId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidLink(request.resource.data);
+        allow update: if isOwner(userId) && isValidLink(request.resource.data) && 
+                         request.resource.data.timestamp == resource.data.timestamp;
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
